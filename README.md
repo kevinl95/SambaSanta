@@ -46,7 +46,7 @@ Make sure check the box allowing AWS to deploy IAM roles- they are needed to sen
 
 CloudFormation will provision all necessary AWS resources, including:
 - An **SNS Topic** for email notifications.
-- A **Lambda function** to generate Santa's letters using the SambaNova API.
+- A **Lambda function** to generate Santa's letters using the SambaNova API. This Lambda function includes an OpenAI layer that will be used to authenticate with SambaNova. If you'd like to build your own layer or check how we made ours, check out the layer.sh script in this repository! You can then replace the path to our zip archive with your own in CloudFormation.yml if you wish.
 - An **API Gateway** and **CloudFront distribution** to host the web app.
 
 ![A screenshot of the Amazon Web Services dashboard showing the SambaSanta deployment is in progress.](assets/deploy3.png)
