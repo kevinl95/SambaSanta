@@ -4,8 +4,6 @@
 
 [![Lint CloudFormation Templates](https://github.com/kevinl95/SambaSanta/actions/workflows/main.yml/badge.svg?event=push)](https://github.com/kevinl95/SambaSanta/actions/workflows/main.yml)
 
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/create/review?templateURL=https://sambasanta.s3.us-east-1.amazonaws.com/cloudformation.yml&stackName=SambaSanta)
-
 Bring the magic of Christmas to life! With **SambaSanta**, you can use AI to have Santa respond to children’s letters using **SambaNova Cloud** and **AWS services**. Set up your app in minutes to send delightful letters directly from Santa's desk. SambaNova's fast inference times means you'll have an email letter from Santa in seconds from your own AWS-deployed letter writing app.
 
 ---
@@ -18,11 +16,12 @@ Click the button below to deploy the **SambaSanta** stack using AWS CloudFormati
 [![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home#/stacks/create/review?templateURL=https://sambasanta.s3.us-east-1.amazonaws.com/cloudformation.yml&stackName=SambaSanta)
 
 This will open the AWS CloudFormation console with the **SambaSanta** template pre-loaded.
-
-![A screenshot of the Amazon Web Services console ready to deply the CloudFormation stack.](assets/deploy1.png)
 ---
 
 ### **Step 2: Provide Stack Parameters**
+
+![A screenshot of the Amazon Web Services console ready to deply the CloudFormation stack.](assets/deploy1.png)
+
 You’ll be asked to provide the following parameters:
 
 1. **MyEmail**:
