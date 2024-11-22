@@ -25,7 +25,7 @@ Resources:
     LambdaFunction:
         Type: "AWS::Lambda::Function"
         Properties:
-            Description: ""
+            Description: "Lambda function to talk to SambaNova Cloud and send emails."
             Environment:
               Variables:
                 SAMBANOVA_API_KEY: !Ref SambaNovaCloudKey
@@ -236,7 +236,7 @@ Resources:
                     ResponseParameters:
                         "method.response.header.Content-Type": "'text/html'"
                     ResponseTemplates:
-                        "application/json": !Sub |
+                        "application/json": |
                             <!DOCTYPE html>
                             <html lang="en">
 
