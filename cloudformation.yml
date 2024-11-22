@@ -20,7 +20,7 @@ Resources:
             Environment:
               Variables:
                 SAMBANOVA_API_KEY: !Ref SambaNovaCloudKey
-                SNS_TOPIC_ARN: !Ref EmailTopic
+                SNS_TOPIC_ARN: !Ref LetterTopic
             FunctionName: "respond"
             Handler: "index.handler"
             Role: !GetAtt LambdaExecutionRole.Arn
