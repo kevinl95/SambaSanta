@@ -84,7 +84,6 @@ Resources:
                     return {"result": response}
             MemorySize: 128
             Runtime: "python3.13"
-            Timeout: 3
             TracingConfig:
                 Mode: "PassThrough"
 
