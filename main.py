@@ -7,6 +7,12 @@ def handler(event, context):
     text = event.get("text")
     api_key = os.environ.get("SAMBANOVA_API_KEY")
 
+    # Get the SNS Topic ARN from the environment variable
+    sns_topic_arn = os.getenv('SNS_TOPIC_ARN')
+
+    # Create an SNS client
+    sns_client = boto3.client('sns')
+
     client = OpenAI(
         base_url="https://api.sambanova.ai/v1/",
         api_key=api_key,  
@@ -31,4 +37,11 @@ def handler(event, context):
         response += chunk.choices[0].delta.content or ""
 
     print(response)
+
+    # Publish the response letter to the topic
+    response = sns_client.publish(
+        TopicArn=sns_topic_arn,
+        Message=response,
+        Subject="Merry Christmas from Santa!"
+    )
     return {"result": response}

@@ -3,6 +3,11 @@ Metadata:
     Generator: "former2"
 Description: "Leverage SambaNova Cloud and AWS to respond to children's letters to Santa with AI!"
 Parameters:
+  MyEmail:
+    Description: Email where you will get your letters from Santa
+    Type: String
+    AllowedPattern: "[^@\\s]+@[^@\\s]+\\.[^@\\s]+"
+    ConstraintDescription: "Must be a valid email address."
   SambaNovaCloudKey:
     Type: String
     Description: "SambaNova Cloud API Key for the Lambda function"
@@ -13,10 +18,12 @@ Resources:
         Properties:
             Description: ""
             Environment:
-            Variables:
-              SAMBANOVA_API_KEY: !Ref SambaNovaCloudKey
+              Variables:
+                SAMBANOVA_API_KEY: !Ref SambaNovaCloudKey
+                SNS_TOPIC_ARN: !Ref EmailTopic
             FunctionName: "respond"
             Handler: "index.handler"
+            Role: !GetAtt LambdaExecutionRole.Arn
             Code:
               ZipFile: |
                 import boto3
@@ -35,10 +42,9 @@ Resources:
                         SourceLanguageCode=languagecodes[sourceLanguage],
                         TargetLanguageCode=languagecodes[targetLanguage]
                     )
-                    return {"result": response['responddText']}
+                    return {"result": response['respondText']}
             MemorySize: 128
-            Role: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/respond-role-k8s4z0eg"
-            Runtime: "python3.7"
+            Runtime: "python3.13"
             Timeout: 3
             TracingConfig:
                 Mode: "PassThrough"
@@ -50,6 +56,33 @@ Resources:
             FunctionName: !GetAtt LambdaFunction.Arn
             Principal: "apigateway.amazonaws.com"
             SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*"
+
+    LetterTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        Subscription:
+          - Protocol: email
+            Endpoint: !Ref MyEmail
+
+    LambdaExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: PublishToSNS
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action: sns:Publish
+                  Resource: !Ref LetterTopic
+
 
     CloudFrontDistribution:
         Type: "AWS::CloudFront::Distribution"
