@@ -2,11 +2,19 @@ AWSTemplateFormatVersion: "2010-09-09"
 Metadata:
     Generator: "former2"
 Description: "Leverage SambaNova Cloud and AWS to respond to children's letters to Santa with AI!"
+Parameters:
+  SambaNovaCloudKey:
+    Type: String
+    Description: "SambaNova Cloud API Key for the Lambda function"
+    NoEcho: true # Hides the API key from logs and output
 Resources:
     LambdaFunction:
         Type: "AWS::Lambda::Function"
         Properties:
             Description: ""
+            Environment:
+            Variables:
+              SAMBANOVA_API_KEY: !Ref SambaNovaCloudKey
             FunctionName: "respond"
             Handler: "index.handler"
             Code:
