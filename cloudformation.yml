@@ -31,7 +31,7 @@ Resources:
                 SAMBANOVA_API_KEY: !Ref SambaNovaCloudKey
                 SNS_TOPIC_ARN: !Ref LetterTopic
             FunctionName: "respond"
-            Handler: "index.handler"Timeout: 300
+            Handler: "index.handler"
             Role: !GetAtt LambdaExecutionRole.Arn
             Timeout: 300
             Layers:
