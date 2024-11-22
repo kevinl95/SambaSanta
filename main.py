@@ -3,7 +3,6 @@ from openai import OpenAI
 import os
 
 def handler(event, context):
-    print(event)
     text = event.get("text")
     api_key = os.environ.get("SAMBANOVA_API_KEY")
 
@@ -19,7 +18,7 @@ def handler(event, context):
     )
 
     model = "Meta-Llama-3.1-405B-Instruct"
-    prompt = "Pretend you are Santa and write a letter intended for a child based on this letter they have sent you: " + text
+    prompt = "Pretend you are Santa and write a letter intended for a child (do not include the child's name unless they specify it or anything in brackets) based on this letter they have sent you: " + text
 
     completion = client.chat.completions.create(
         model=model,
@@ -35,8 +34,6 @@ def handler(event, context):
     response = ""
     for chunk in completion:
         response += chunk.choices[0].delta.content or ""
-
-    print(response)
 
     # Publish the response letter to the topic
     response = sns_client.publish(

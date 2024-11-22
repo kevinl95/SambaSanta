@@ -18,7 +18,7 @@ Resources:
       Properties:
         Content:
           S3Bucket: sambasanta
-          S3Key: layer.zip
+          S3Key: lambda-layer.zip
         CompatibleRuntimes:
           - python3.13
         Description: "Public Layer with the OpenAI SDK"
@@ -31,8 +31,9 @@ Resources:
                 SAMBANOVA_API_KEY: !Ref SambaNovaCloudKey
                 SNS_TOPIC_ARN: !Ref LetterTopic
             FunctionName: "respond"
-            Handler: "index.handler"
+            Handler: "index.handler"Timeout: 300
             Role: !GetAtt LambdaExecutionRole.Arn
+            Timeout: 300
             Layers:
               - !Ref OpenAILayer
             Code:
@@ -42,7 +43,6 @@ Resources:
                 import os
 
                 def handler(event, context):
-                    print(event)
                     text = event.get("text")
                     api_key = os.environ.get("SAMBANOVA_API_KEY")
 
@@ -58,7 +58,7 @@ Resources:
                     )
 
                     model = "Meta-Llama-3.1-405B-Instruct"
-                    prompt = "Pretend you are Santa and write a letter intended for a child based on this letter they have sent you: " + text
+                    prompt = "Pretend you are Santa and write a letter intended for a child (do not include the child's name unless they specify it or anything in brackets) based on this letter they have sent you: " + text
 
                     completion = client.chat.completions.create(
                         model=model,
@@ -74,8 +74,6 @@ Resources:
                     response = ""
                     for chunk in completion:
                         response += chunk.choices[0].delta.content or ""
-
-                    print(response)
 
                     # Publish the response letter to the topic
                     response = sns_client.publish(
