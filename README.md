@@ -4,7 +4,7 @@
 
 [![Lint CloudFormation Templates](https://github.com/kevinl95/SambaSanta/actions/workflows/main.yml/badge.svg?event=push)](https://github.com/kevinl95/SambaSanta/actions/workflows/main.yml)
 
-Bring the magic of Christmas to life! With **SambaSanta**, you can use AI to have Santa respond to children’s letters using **SambaNova Cloud** and **AWS services**. Set up your app in minutes to send delightful letters directly from Santa's desk. SambaNova's fast inference times means you'll have an email letter from Santa in seconds from your own AWS-deployed letter writing app.
+Bring the magic of Christmas to life! With **SambaSanta**, you can use AI to have Santa respond to children’s letters using **SambaNova Cloud** and **Amazon Web Services (AWS)**. Set up your app in minutes to send delightful letters directly from Santa's desk. SambaNova's fast inference times means you'll have an email letter from Santa in seconds from your own AWS-deployed letter writing app.
 
 ---
 
@@ -84,6 +84,24 @@ Below is a full diagram of the application:
 - 🎄 **Interactive web interface**: Write letters to Santa on your device of choice.
 - 🎅 **AI-generated responses**: Santa’s replies are powered by Llama running on SambaNova Cloud.
 - 📧 **Email notifications**: Responses are sent directly to your inbox.
+
+---
+
+## Local Development
+
+A simple pyproject.toml is provided for playing with the Lambda code locally, which you can find in main.py. You can install poetry:
+
+```
+python -m pip install poetry
+```
+
+And then get an environment with the same OpenAI version we use in our layer by running poetry install:
+
+```
+poetry install
+```
+
+This is also required to invoke layer.zip, which will bundle the latest OpenAI Python SDK into a zip file you can use as a Lambda layer instead of ours, if you choose.
 
 ---
 
