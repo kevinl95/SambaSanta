@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "sambasanta"
+version = "1.0"
+description = "Use SambaNova Cloud and AWS to send letters from Santa"
+authors = ["kloeffler95 <kevin.loeffler@colorado.edu>"]
+license = "MIT"
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.13"
+python-lambda-local = "^0.1.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

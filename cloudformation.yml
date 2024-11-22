@@ -1,0 +1,320 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+    Generator: "former2"
+Description: "Leverage SambaNova Cloud and AWS to respond to children's letters to Santa with AI!"
+Resources:
+    LambdaFunction:
+        Type: "AWS::Lambda::Function"
+        Properties:
+            Description: ""
+            FunctionName: "respond"
+            Handler: "index.handler"
+            Code:
+              ZipFile: |
+                import boto3
+
+
+                def handler(event, context):
+                    print(event)
+                    languagecodes = {'Afrikaans': 'af', 'Albanian': 'sq', 'Amharic': 'am', 'Arabic': 'ar', 'Azerbaijani': 'az', 'Bengali': 'bn', 'Bosnian': 'bs', 'Bulgarian': 'bg', 'Chinese (Simplified)': 'zh', 'Chinese (Traditional)': 'zh-TW', 'Croatian': 'hr', 'Czech': 'cs', 'Danish': 'da', 'Dari': 'fa-AF', 'Dutch': 'nl', 'English': 'en', 'Estonian': 'et', 'Finnish': 'fi', 'French': 'fr', 'French (Canada)': 'fr-CA', 'Georgian': 'ka', 'German': 'de', 'Greek': 'el', 'Hausa': 'ha', 'Hebrew': 'he', 'Hindi': 'hi', 'Hungarian': 'hu',
+                                     'Indonesian': 'id', 'Italian': 'it', 'Japanese': 'ja', 'Korean': 'ko', 'Latvian': 'lv', 'Malay': 'ms', 'Norwegian': 'no', 'Persian': 'fa', 'Pashto': 'ps', 'Polish': 'pl', 'Portuguese': 'pt', 'Romanian': 'ro', 'Russian': 'ru', 'Serbian': 'sr', 'Slovak': 'sk', 'Slovenian': 'sl', 'Somali': 'so', 'Spanish': 'es', 'Spanish (Mexico)': 'es-MX', 'Swahili': 'sw', 'Swedish': 'sv', 'Tagalog': 'tl', 'Tamil': 'ta', 'Thai': 'th', 'Turkish': 'tr', 'Ukrainian': 'uk', 'Urdu': 'ur', 'Vietnamese': 'vi'}
+                    client = boto3.client('respond')
+                    text = event.get("text")
+                    sourceLanguage = event.get("source")
+                    targetLanguage = event.get("target")
+                    response = client.respond_text(
+                        Text=text,
+                        SourceLanguageCode=languagecodes[sourceLanguage],
+                        TargetLanguageCode=languagecodes[targetLanguage]
+                    )
+                    return {"result": response['responddText']}
+            MemorySize: 128
+            Role: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/respond-role-k8s4z0eg"
+            Runtime: "python3.7"
+            Timeout: 3
+            TracingConfig:
+                Mode: "PassThrough"
+
+    LambdaPermission:
+        Type: "AWS::Lambda::Permission"
+        Properties:
+            Action: "lambda:InvokeFunction"
+            FunctionName: !GetAtt LambdaFunction.Arn
+            Principal: "apigateway.amazonaws.com"
+            SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayRestApi}/*/*/*"
+
+    CloudFrontDistribution:
+        Type: "AWS::CloudFront::Distribution"
+        Properties:
+            DistributionConfig:
+                Origins:
+                  -
+                    CustomOriginConfig:
+                        HTTPPort: 80
+                        HTTPSPort: 443
+                        OriginKeepaliveTimeout: 5
+                        OriginProtocolPolicy: "match-viewer"
+                        OriginReadTimeout: 30
+                        OriginSSLProtocols:
+                          - "TLSv1"
+                          - "TLSv1.1"
+                          - "TLSv1.2"
+                    DomainName: !Sub "${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com"
+                    Id: !Sub "Custom-${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+                    OriginPath: "/prod"
+                OriginGroups:
+                    Quantity: 0
+                DefaultCacheBehavior:
+                    AllowedMethods:
+                      - "HEAD"
+                      - "GET"
+                    CachedMethods:
+                      - "HEAD"
+                      - "GET"
+                    Compress: false
+                    DefaultTTL: 86400
+                    ForwardedValues:
+                        Cookies:
+                            Forward: "none"
+                        QueryString: false
+                    MaxTTL: 31536000
+                    MinTTL: 0
+                    SmoothStreaming: false
+                    TargetOriginId: !Sub "Custom-${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+                    ViewerProtocolPolicy: "allow-all"
+                Comment: ""
+                PriceClass: "PriceClass_All"
+                Enabled: true
+                ViewerCertificate:
+                    CloudFrontDefaultCertificate: true
+                    MinimumProtocolVersion: "TLSv1"
+                Restrictions:
+                    GeoRestriction:
+                        RestrictionType: "none"
+                HttpVersion: "http2"
+                IPV6Enabled: true
+
+    ApiGatewayRestApi:
+        Type: "AWS::ApiGateway::RestApi"
+        Properties:
+            Name: "SambaSanta"
+            Description: "Leverage SambaNova Cloud and AWS to respond to children's letters to Santa with AI"
+            ApiKeySourceType: "HEADER"
+            EndpointConfiguration:
+                Types:
+                  - "REGIONAL"
+
+    ApiGatewayDeployment:
+        Type: "AWS::ApiGateway::Deployment"
+        DependsOn:
+          - ApiGatewayMethod
+          - ApiGatewayMethod2
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            StageName: "prod"
+
+    ApiGatewayResource:
+        Type: "AWS::ApiGateway::Resource"
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            PathPart: stack
+            ParentId: !GetAtt
+              - ApiGatewayRestApi
+              - RootResourceId
+
+    ApiGatewayResource2:
+        Type: "AWS::ApiGateway::Resource"
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            PathPart: "index"
+            ParentId: !Ref ApiGatewayResource
+
+    ApiGatewayResource3:
+        Type: "AWS::ApiGateway::Resource"
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            PathPart: "respond"
+            ParentId: !Ref ApiGatewayResource
+
+    ApiGatewayMethod:
+        Type: "AWS::ApiGateway::Method"
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            ResourceId: !Ref ApiGatewayResource2
+            HttpMethod: "GET"
+            AuthorizationType: "NONE"
+            ApiKeyRequired: false
+            RequestParameters: {}
+            MethodResponses:
+              -
+                ResponseParameters:
+                    "method.response.header.Content-Type": false
+                StatusCode: "200"
+            Integration:
+                CacheNamespace: !Ref ApiGatewayResource2
+                IntegrationResponses:
+                  -
+                    ResponseParameters:
+                        "method.response.header.Content-Type": "'text/html'"
+                    ResponseTemplates:
+                        "application/json": !Sub |
+                            <!DOCTYPE html>
+                            <html lang="en">
+
+                            <head>
+                                <meta charset="utf-8">
+                                <title>Santa's Magic Mailbox</title>
+                                <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+                                <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+                                <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+                                <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-maxlength/1.9.0/bootstrap-maxlength.min.js"></script>
+                                <style>
+                                    body {
+                                        background-image: url('https://images.unsplash.com/photo-1545048702-79362596cdc9');
+                                        background-repeat: no-repeat;
+                                        background-attachment: fixed;
+                                        background-size: 100% 100%;
+                                    }
+                                    .content-box {
+                                        background-color: white;
+                                        border-radius: 10px;
+                                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                                        padding: 20px;
+                                    }
+
+                                    h1 {
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 10px;
+                                    }
+                                </style>
+                                
+                                <script type="text/javascript">
+                                $(document).ready(function() {
+
+                                    // used only to allow local serving of files
+                                    $.ajaxSetup({
+                                    beforeSend: function(xhr) {
+                                        if (xhr.overrideMimeType) {
+                                            xhr.overrideMimeType("application/json");
+                                        }
+                                    }
+                                    });
+                                    $('textarea#text').maxlength({
+                                    alwaysShow: true
+                                    });
+
+                                    $('#text').focus(); // set initial focus
+
+                                    $('form#submit').submit(function(event) {
+                                    $('#letter-input-submit').prop('disabled', true);
+
+                                    // process the form
+                                    $.ajax({
+                                        type: 'POST',
+                                        url: '/prod/stack/respond',
+                                        data: JSON.stringify({
+                                            'text': $('#text').val(),
+                                            'cdn_prefix': window.location.hostname
+                                        }),
+                                        contentType: 'application/json; charset=utf-8',
+                                        dataType: 'json',
+                                        encode: true
+                                        })
+                                        .done(function(data, textStatus, jqXHR) {
+                                        $('#letter-input-submit').prop('disabled', false);
+                                        if (data.error) {
+                                            $('#url-group').addClass('has-error'); // add the error class to show red input
+                                            $('#letter-error').show().text(data.error); // add the actual error message under our input
+                                        } else {
+                                            $('form#submit').hide(); // hide initial submit form
+                                            $('form#result').show(); // and show the one used to display the results
+                                        }
+                                        })
+                                        .fail(function(_, _, errorThrown) {
+                                        $('#letter-input-submit').prop('disabled', false);
+                                        $('#url-group').addClass('has-error'); // add the error class to show red input
+                                        $('#letter-error').show().text("Server error: " + errorThrown); // add the actual error message under our input
+                                        });
+
+                                    // stop the form from submitting the normal way and refreshing the page
+                                    event.preventDefault();
+                                    });
+
+                                    $('form#result').submit(function(event) {
+                                    location.reload();
+                                    });
+
+                                });
+                                </script>
+                            </head>
+
+                            <body>
+                                <br></br>
+                                <div class="container mt-5">
+                                    <div class="content-box">
+                                        <h1>Santa's Mailbox
+                                            <i class="bi bi-tree-fill" style="color: green;"></i>
+                                        </h1>
+                                        <br />
+                                        <form id="submit">
+                                            <p>This magic website will send your letter right to Santa. Each letter is guaranteed to reach the North Pole
+                                            just in time for the holidays. Type your letter below, then press `Send'!</p>
+                                            <div id="url-group" class="form-group">
+                                            <br></br>
+                                            <label for="text">Your letter:</label>
+                                            <textarea class="form-control" required rows="10" maxlength="5000" id="text"></textarea>
+                                            <div class="help-block" style="display: none" id="letter-error"></div>
+                                            </div>
+                                            <button type="submit" class="btn btn-success" id="letter-input-submit">Send</button>
+
+                                        </form>
+                                        <form id="result" style="display: none">
+                                            <div class="alert alert-success">Santa will email you soon!</div>
+                                            <div class="form-group">
+                                            </div><button type="submit" class="btn btn-success" id="page_reload">Write Santa again?</button>
+                                            <div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </body>
+
+                            </html>
+
+                    SelectionPattern: ""
+                    StatusCode: "200"
+                PassthroughBehavior: "WHEN_NO_MATCH"
+                RequestTemplates:
+                    "application/json": "{\"statusCode\": 200}"
+                TimeoutInMillis: 29000
+                Type: "MOCK"
+
+    ApiGatewayMethod2:
+        Type: "AWS::ApiGateway::Method"
+        Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            ResourceId: !Ref ApiGatewayResource3
+            HttpMethod: "POST"
+            AuthorizationType: "NONE"
+            ApiKeyRequired: false
+            RequestParameters: {}
+            MethodResponses:
+              -
+                StatusCode: "200"
+            Integration:
+                CacheNamespace: !Ref ApiGatewayResource3
+                ContentHandling: "CONVERT_TO_TEXT"
+                IntegrationHttpMethod: "POST"
+                IntegrationResponses:
+                  -
+                    ResponseTemplates: {}
+                    StatusCode: "200"
+                PassthroughBehavior: "WHEN_NO_MATCH"
+                TimeoutInMillis: 29000
+                Type: "AWS"
+                Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:respond/invocations"
+Outputs:
+  outputpage:
+    Description: URL of the webpage where you can send your letters
+    Value: !Sub "https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/prod/stack/index"
