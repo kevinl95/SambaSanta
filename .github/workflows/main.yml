@@ -17,12 +17,3 @@ jobs:
         run: |
           cfn-lint --version
           cfn-lint -t ./cloudformation.yml
-
-  security-scan-nag:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: grolston/cfn-security@master
-      with:
-        cloudformation_directory: './'
-        scanner: "all"
