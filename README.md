@@ -51,7 +51,7 @@ CloudFormation will provision all necessary AWS resources, including:
 
 ![A screenshot of the Amazon Web Services dashboard showing the SambaSanta deployment is in progress.](assets/deploy3.png)
 
-**Be sure to visit your email during deployment and hit "Confirm subscription" in the SNS email you will receive to authorize the application to send you emails! You will not receive any responses from SabmaSanta until you do so!**
+**Be sure to visit your email during deployment and hit "Confirm subscription" in the SNS email you will receive to authorize the application to send you emails! You will not receive any responses from SambaSanta until you do so!**
 
 ![A screenshot of an SNS email asking the user to confirm their subscription to the email topic- in this case it would be email responses from SamaSanta.](assets/email.png)
 
